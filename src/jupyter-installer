@@ -2839,10 +2839,10 @@ class AppBase(object):
         self.cmd_history("# ** Try to remove downloaded file **")
 
     def history_remove_previous_global(self):
-        self.cmd_history('# ** Try to remove previous installed global version **')
+        self.cmd_history("# ** Try to remove previous installed global version **")
 
     def history_remove_previous_local(self):
-        self.cmd_history('# ** Try to remove previous installed local version **')
+        self.cmd_history("# ** Try to remove previous installed local version **")
 
     def history_remove_sudoer(self):
         self.cmd_history("# ** Try to check and remove sudoer file **")
