@@ -3311,6 +3311,7 @@ class OnlineInstaller(AppBase):
         if len(sys.argv) == 2:
             self.cmd(sys.argv[1])
             if self.cmd() == "install" or self.cmd() == "update":
+                self.download_and_install()
                 result = self.install_jupyter()
                 self.cmd_history_print()
                 if result:
@@ -3354,5 +3355,5 @@ class OnlineInstaller(AppBase):
 
 if __name__ == "__main__":
     app = OnlineInstaller()
-    app.setInstallation(appName='jupyter-installer', author='Cloudgen Wong', homepage="https://github.com/cloudgen/jupyter-installer",downloadUrl="https://dl.leolio.page/jupyter-installer",lastUpdate='2023-12-22',majorVersion=12,minorVersion=22)
+    app.setInstallation(appName='jupyter-installer', author='Cloudgen Wong', homepage="https://github.com/cloudgen/jupyter-installer",downloadUrl="https://dl.leolio.page/jupyter-installer",lastUpdate='2023-12-27',majorVersion=12,minorVersion=27)
     app.start()
