@@ -993,7 +993,10 @@ class Shell(CmdHistory, Which):
             tar = self.where_cmd('tar.exe')
         else:
             tar = self.which_cmd('tar')
-        cmd= [tar, "--no-same-owner","--no-same-permissions","-cvf", fname, path]
+        if self.is_mac():
+            cmd= [tar,"--uid","0","--gid","0", "--no-same-owner","--no-same-permissions","-cvf", fname, path]
+        else:
+            cmd= [tar,"--owner=0", "--group=0", "--no-same-owner","--no-same-permissions","-cvf", fname, path]
         self.cmd_history(" ".join(cmd))
         result, stdout = self.shell(cmd,ignoreErr=True,ignoreAll=True)
 
@@ -1069,7 +1072,7 @@ class AppHistory(Shell):
         self.cmd_history("# ** Try to check and modify ~/.zshenv **", line_num)
 
     def history_compress(self, target_file, line_num=None):
-        self.cmd_history("# ** Trying to create compressed file {target_file} for container **", currentframe().f_lineno)
+        self.cmd_history(f"# ** Trying to create compressed file {target_file} for container **", currentframe().f_lineno)
 
     def history_create_soft_link(self, line_num=None):
         self.cmd_history("# ** Try to create soft link **", line_num)
@@ -1429,7 +1432,6 @@ class OS(AppHistory):
         return self.uname('-m')
 
 class AppMsg(OS):
-
 
     def msg_alpine_detected(self, title="OPERATION SYSTEM"):
         self.infoMsg("Alpine Detected!", title)
@@ -2740,7 +2742,7 @@ class Temp(Shell):
         return ""
 
 class AppBase(Installer, AppPara, Ask, ShellProfile, FromPipe, AppMsg, Curl, Temp):
-    VERSION="1.7"
+    VERSION="1.8"
 
     __here__ = __file__
 
@@ -3682,20 +3684,26 @@ class OnlineInstaller(AppBase):
         if len(sys.argv) == 2:
             self.cmd(sys.argv[1])
             if self.cmd() == "install" or self.cmd() == "update":
-                self.download_and_install()
-                result = self.install_jupyter()
-                self.cmd_history_print()
-                if result:
-                    self.msg_install(location='Globally', app="jupyter --version", title="INSTALL")
+                if self.check_system_and_user():
+                    self.download_and_install()
+                    result = self.install_jupyter()
+                    self.cmd_history_print()
+                    if result:
+                        self.msg_install(location='Globally', app="jupyter --version", title="INSTALL")
+                else:
+                    self.msg_root_continue()
                 return True
             elif self.cmd() == "install-admin":
-                result = self.install_nginx_admin()
-                self.cmd_history_print()
-                if result:
-                    self.selfInstall()
-                    self.msg_install(location='Globally', app="jupyter --version", title="INSTALL")
+                if self.check_system_and_user():
+                    result = self.install_nginx_admin()
+                    self.cmd_history_print()
+                    if result:
+                        self.selfInstall()
+                        self.msg_install(location='Globally', app="jupyter --version", title="INSTALL")
+                    else:
+                        self.msg_installation_failed()
                 else:
-                    self.msg_installation_failed()
+                    self.msg_root_continue()
                 return True
             elif self.cmd() == "uninstall":
                 self.uninstall_jupyter()
@@ -3717,14 +3725,11 @@ class OnlineInstaller(AppBase):
     def start(self):
         self.allowInstallLocal(False).allowDisplayInfo(True).allowSelfInstall(True)
         self.usage('check-update|install|install-admin|uninstall')
-        if self.check_system_and_user():
-            if not self.parseArgs2():
-                if not self.parseArgs(self.usage()):
-                    self.msg_info()
-        else:
-            self.msg_root_continue()
+        if not self.parseArgs2():
+            if not self.parseArgs(self.usage()):
+                self.msg_info()
 
 if __name__ == "__main__":
     app = OnlineInstaller(__file__)
-    app.setInstallation(appName='jupyter-installer', author='Cloudgen Wong', homepage="https://github.com/cloudgen/jupyter-installer",downloadUrl="https://dl.leolio.page/jupyter-installer",lastUpdate='2024-1-26',majorVersion=13,minorVersion=26)
+    app.setInstallation(appName='jupyter-installer', author='Cloudgen Wong', homepage="https://github.com/cloudgen/jupyter-installer",downloadUrl="https://dl.leolio.page/jupyter-installer",lastUpdate='2024-3-20',majorVersion=15,minorVersion=20)
     app.start()
